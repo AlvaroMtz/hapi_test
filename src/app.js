@@ -1,6 +1,7 @@
 const hapi = require('@hapi/hapi');
 const path = require('path');
 const inert = require('inert');
+const vision = require('@hapi/vision');
 
 const init  = async () => {
   const server = new hapi.Server({
@@ -14,37 +15,27 @@ const init  = async () => {
   });
 
   await server.register(inert);
+  await server.register(vision);
+
+  server.views({
+    engines: {
+      html: require('ejs')
+    },
+    relativeTo: __dirname,
+    path: 'templates',
+    isCached: false
+  });
+
   await server.start();
   console.log('Server running on: ', server.info.uri);
 
   server.route({
     method: 'GET',
-    path: '/',
+    path: '/page',
     handler: (request, h) => {
-      return '<h1>Hello World!</h1>'
+      return h.view('index')
     }
   });
-  server.route({
-    method: 'GET',
-    path: '/about',
-    handler: (request, h) => {
-      return 'About'
-    }
-  })
-  server.route({
-    method: 'GET',
-    path: '/hello/{user}',
-    handler: (request, h) => {
-      return `Hello ${request.params.user}`
-    }
-  })
-  server.route({
-    method: 'GET',
-    path: '/text.txt',
-    handler: (request, h) => {
-      return h.file('./text.txt')
-    }
-  })
 };
 
 init();
